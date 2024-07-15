@@ -36,7 +36,8 @@ pipeline {
                     echo "Iniciando login no Docker Registry"
                     docker.withRegistry("https://${env.REGISTRY}", env.REGISTRY_CREDENTIALS) {
                         echo "Login bem-sucedido, iniciando push da imagem Docker"
-                        docker.image("${IMAGE_NAME}:${IMAGE_TAG}").push()
+                        sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+                        sh "docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} || true"  // Ignorar erro para capturar logs
                     }
                 }
             }
