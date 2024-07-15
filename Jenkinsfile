@@ -41,14 +41,16 @@ pipeline {
                 script {
                     writeFile file: 'kubeconfig', text: env.KUBE_CONFIG
                     withKubeConfig([credentialsId: 'kube-config', contextName: 'my-cluster-context', serverUrl: 'https://k8s-api-server:6443']) {
-                        sh 'kubectl apply -f deployment.yaml'
-                        sh 'kubectl apply -f service.yaml'
+                        sh 'kubectl apply -f app-deployment.yaml'
+                        sh 'kubectl apply -f app-service.yaml'
+                        sh 'kubectl apply -f current-configmap.yaml'
+                        sh 'kubectl apply -f docker-secret.yaml'
                         sh 'kubectl apply -f ingress.yaml'
-                        sh 'kubectl apply -f persistent-volume.yaml'
-                        sh 'kubectl apply -f secret.yaml'
-                        sh 'kubectl apply -f configmap.yaml'
                         sh 'kubectl apply -f mongo-deployment.yaml'
                         sh 'kubectl apply -f mongo-service.yaml'
+                        sh 'kubectl apply -f persistent-volume.yaml'
+                        sh 'kubectl apply -f pvc.yaml'
+                        sh 'kubectl apply -f secret.yaml'
                     }
                 }
             }
