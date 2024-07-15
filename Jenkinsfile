@@ -24,8 +24,8 @@ pipeline {
             steps {
                 script {
                     echo "Iniciando build da imagem Docker"
-                    dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
-                    echo "Imagem Docker construída com sucesso: ${dockerImage.id()}"
+                    def dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                    echo "Imagem Docker construída com sucesso: ${dockerImage.imageName()}"
                 }
             }
         }
@@ -36,7 +36,7 @@ pipeline {
                     echo "Iniciando login no Docker Registry"
                     docker.withRegistry("https://${env.REGISTRY}", env.REGISTRY_CREDENTIALS) {
                         echo "Login bem-sucedido, iniciando push da imagem Docker"
-                        sh "docker push ${IMAGE_NAME}:${IMAGE_TAG} || true"  // Ignorar erro para capturar logs
+                        docker.image("${IMAGE_NAME}:${IMAGE_TAG}").push()
                     }
                 }
             }
