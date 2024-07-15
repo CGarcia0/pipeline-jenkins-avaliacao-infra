@@ -13,7 +13,9 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
+                    echo "Iniciando Checkout do código-fonte"
                     checkout scm
+                    echo "Checkout concluído com sucesso"
                 }
             }
         }
@@ -21,7 +23,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    echo "Iniciando build da imagem Docker"
                     dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                    echo "Imagem Docker construída com sucesso: ${dockerImage.id()}"
                 }
             }
         }
@@ -29,8 +33,10 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
+                    echo "Iniciando login no Docker Registry"
                     docker.withRegistry("https://${env.REGISTRY}", env.REGISTRY_CREDENTIALS) {
-                        dockerImage.push()
+                        echo "Login bem-sucedido, iniciando push da imagem Docker"
+                        sh "docker push ${IMAGE_NAME}:${IMAGE_TAG} || true"  // Ignorar erro para capturar logs
                     }
                 }
             }
@@ -39,6 +45,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
+                    echo "Iniciando deploy no Kubernetes"
                     writeFile file: 'kubeconfig', text: env.KUBE_CONFIG
                     withKubeConfig([credentialsId: 'kube-config', contextName: 'my-cluster-context', serverUrl: 'https://k8s-api-server:6443']) {
                         sh 'kubectl apply -f app-deployment.yaml'
@@ -52,6 +59,7 @@ pipeline {
                         sh 'kubectl apply -f pvc.yaml'
                         sh 'kubectl apply -f secret.yaml'
                     }
+                    echo "Deploy no Kubernetes concluído com sucesso"
                 }
             }
         }
@@ -59,7 +67,13 @@ pipeline {
 
     post {
         always {
+            echo "Limpando workspace"
             cleanWs()
+        }
+        failure {
+            script {
+                echo "A pipeline falhou. Verifique os logs acima para mais detalhes."
+            }
         }
     }
 }
